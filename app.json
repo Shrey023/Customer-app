@@ -13,17 +13,31 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.shrey_rai.customerapp",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bcd6b9ef-6cdc-4d91-9890-9c24ec951a80"
+      }
     }
   }
 }
