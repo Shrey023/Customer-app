@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Text style={styles.brand}>Mechzy</Text>
+      <Text style={styles.brand}>Mechze</Text>
       <Text style={styles.title}>Welcome back</Text>
 
       {/* Email Input */}

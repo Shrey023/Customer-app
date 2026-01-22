@@ -1,12 +1,11 @@
 {
   "expo": {
-    "name": "customer-app",
-    "slug": "customer-app",
+    "slug": "customer-app-new",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -35,9 +34,20 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "API_URL": "https://mechtrix.onrender.com/api",
+      "GOOGLE_MAPS_KEY": "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA",
+      "FIREBASE_CONFIG": {
+        "apiKey": "AIzaSyB3haMSVU7irgTXQryAjzuk1z629NcMADk",
+        "authDomain": "mechzy-53b97.firebaseapp.com",
+        "projectId": "mechzy-53b97",
+        "storageBucket": "mechzy-53b97.appspot.com",
+        "messagingSenderId": "330922177030",
+        "appId": "1:330922177030:web:ef002d8eacf4b6ca650987"
+      },
       "eas": {
-        "projectId": "bcd6b9ef-6cdc-4d91-9890-9c24ec951a80"
+        "projectId": "7a99f17f-62e6-488f-a6dd-5f26ac98ca52"
       }
-    }
+    },
+    "owner": "shrey_242"
   }
 }

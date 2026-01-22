@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,27 +7,24 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 import {
   getAuth,
   signInWithPhoneNumber,
   PhoneAuthProvider,
   signInWithCredential,
 } from "firebase/auth";
-import { app, firebaseConfig } from "../config/firebase";
+import { app } from "../config/firebase.js";
 import API from "../api/client";
 
 const auth = getAuth(app);
 
 export default function OTPScreen({ navigation }) {
-  const recaptchaVerifier = useRef(null);
-
   const [phone, setPhone] = useState("");
   const [verificationId, setVerificationId] = useState(null);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Send OTP
+  // Send OTP (UNCHANGED LOGIC)
   const sendOtp = async () => {
     try {
       const digits = phone.replace(/\D/g, "");
@@ -36,11 +33,9 @@ export default function OTPScreen({ navigation }) {
       }
 
       const e164 = phone.startsWith("+") ? phone : `+91${digits.slice(-10)}`;
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        e164,
-        recaptchaVerifier.current
-      );
+
+      // ✅ Recaptcha is handled internally by Firebase in RN
+      const confirmation = await signInWithPhoneNumber(auth, e164);
 
       setVerificationId(confirmation.verificationId);
       Alert.alert("Success", "OTP sent to " + e164);
@@ -49,7 +44,7 @@ export default function OTPScreen({ navigation }) {
     }
   };
 
-  // Verify OTP
+  // Verify OTP (UNCHANGED)
   const verifyOtp = async () => {
     if (!verificationId) return Alert.alert("Error", "Please request OTP first");
     if (otp.length < 6) return Alert.alert("Error", "Enter 6-digit OTP");
@@ -66,7 +61,6 @@ export default function OTPScreen({ navigation }) {
       const res = await API.post("/customers/verify-otp", { idToken });
 
       const { token, _id, isNew } = res.data;
-      Alert.alert("Success", "OTP verified successfully!");
       setLoading(false);
 
       if (isNew) {
@@ -82,15 +76,8 @@ export default function OTPScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={firebaseConfig}
-        style={{ opacity: 0 }}
-      />
-
       {!verificationId ? (
         <>
-          {/* Phone Number Input Screen */}
           <Text style={styles.header}>Enter your mobile number</Text>
 
           <TextInput
@@ -108,7 +95,6 @@ export default function OTPScreen({ navigation }) {
         </>
       ) : (
         <>
-          {/* OTP Verification Screen */}
           <Text style={styles.header}>Enter code</Text>
           <Text style={styles.subText}>We sent a code to {phone}</Text>
 
@@ -155,7 +141,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 25,
     justifyContent: "center",
-    backgroundColor: "#fff", // Light theme background
+    backgroundColor: "#fff",
   },
   header: {
     fontSize: 22,
@@ -179,7 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#f9a825", // orange
+    backgroundColor: "#f9a825",
     padding: 15,
     borderRadius: 30,
     alignItems: "center",

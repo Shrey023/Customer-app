@@ -35,3 +35,21 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Firebase config
+config/firebase.js
+config/*.config.js
+
+# Env files
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# Archives / Backups
+*.zip
+*.rar
+*.tar.gz
+
+!config/firebase.js

@@ -51,7 +51,7 @@ export default function BookingDetails({ route, navigation }) {
 
   const fetchRoute = async (startLat, startLng, endLat, endLng) => {
     try {
-      const apiKey = "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA"; // ⚠️ Replace
+      const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY;
       const res = await axios.get(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${startLat},${startLng}&destination=${endLat},${endLng}&key=${apiKey}`
       );
