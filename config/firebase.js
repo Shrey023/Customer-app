@@ -1,7 +1,6 @@
 // customer-app/config/firebase.js
 import { initializeApp } from "firebase/app";
 
-// ✅ EAS + production safe Firebase config
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -10,5 +9,12 @@ const firebaseConfig = {
   messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
+
+console.log("🔥 Firebase config at runtime:", firebaseConfig);
+
+// ⛑️ Guard to prevent silent crash
+if (!firebaseConfig.apiKey) {
+  throw new Error("Firebase config missing at runtime");
+}
 
 export const app = initializeApp(firebaseConfig);
