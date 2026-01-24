@@ -2,13 +2,30 @@
 import axios from "axios";
 import Constants from "expo-constants";
 
-const { API_URL } = Constants.expoConfig.extra;
+let apiInstance = null;
 
-const API = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+function getAPI() {
+  if (apiInstance) return apiInstance;
 
-export default API;
+  const apiUrl = Constants?.expoConfig?.extra?.API_URL;
+
+  if (!apiUrl) {
+    throw new Error("API_URL missing in Expo config");
+  }
+
+  apiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return apiInstance;
+}
+
+export default {
+  get: (...args) => getAPI().get(...args),
+  post: (...args) => getAPI().post(...args),
+  put: (...args) => getAPI().put(...args),
+  delete: (...args) => getAPI().delete(...args),
+};
