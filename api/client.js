@@ -7,24 +7,19 @@ let apiInstance = null;
 function getAPI() {
   if (apiInstance) return apiInstance;
 
-  const apiUrl = Constants?.expoConfig?.extra?.API_URL;
+  const apiUrl =
+    Constants?.expoConfig?.extra?.API_URL ||
+    Constants?.manifest?.extra?.API_URL;
 
-  // 🔐 DO NOT THROW — standalone app crash ho jaata hai
+  // ❗ Never throw — standalone build crash ho jaata hai
   if (!apiUrl) {
     console.warn(
-      "[API] API_URL missing in Expo config. API calls will fail gracefully."
+      "[API] API_URL not found in Expo config. Using fallback baseURL."
     );
-
-    // dummy instance so app doesn't crash
-    apiInstance = axios.create({
-      baseURL: "http://localhost",
-    });
-
-    return apiInstance;
   }
 
   apiInstance = axios.create({
-    baseURL: apiUrl,
+    baseURL: apiUrl || "https://mechtrix.onrender.com/api",
     headers: {
       "Content-Type": "application/json",
     },
