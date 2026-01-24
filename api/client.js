@@ -9,8 +9,18 @@ function getAPI() {
 
   const apiUrl = Constants?.expoConfig?.extra?.API_URL;
 
+  // 🔐 DO NOT THROW — standalone app crash ho jaata hai
   if (!apiUrl) {
-    throw new Error("API_URL missing in Expo config");
+    console.warn(
+      "[API] API_URL missing in Expo config. API calls will fail gracefully."
+    );
+
+    // dummy instance so app doesn't crash
+    apiInstance = axios.create({
+      baseURL: "http://localhost",
+    });
+
+    return apiInstance;
   }
 
   apiInstance = axios.create({
@@ -24,8 +34,8 @@ function getAPI() {
 }
 
 export default {
-  get: (...args) => getAPI().get(...args),
-  post: (...args) => getAPI().post(...args),
-  put: (...args) => getAPI().put(...args),
-  delete: (...args) => getAPI().delete(...args),
+  get: (url, config) => getAPI().get(url, config),
+  post: (url, data, config) => getAPI().post(url, data, config),
+  put: (url, data, config) => getAPI().put(url, data, config),
+  delete: (url, config) => getAPI().delete(url, config),
 };
