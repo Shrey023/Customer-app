@@ -1,27 +1,44 @@
-// customer-app/config/firebase.js
 import { initializeApp, getApps } from "firebase/app";
 import Constants from "expo-constants";
 
-let firebaseApp = null;
+let firebaseApp;
 
-function getFirebaseConfig() {
-  return Constants?.expoConfig?.extra?.FIREBASE_CONFIG;
+/**
+ * IMPORTANT:
+ * - Never throw
+ * - Never initialize at import time
+ * - Never rely on process.env
+ */
+function resolveFirebaseConfig() {
+  const extra = Constants?.expoConfig?.extra;
+
+  if (!extra || !extra.FIREBASE_CONFIG) {
+    console.warn("⚠️ FIREBASE_CONFIG missing in expo.extra");
+    return null;
+  }
+
+  return extra.FIREBASE_CONFIG;
 }
 
 export function getFirebaseApp() {
   if (firebaseApp) return firebaseApp;
 
-  const firebaseConfig = getFirebaseConfig();
+  const config = resolveFirebaseConfig();
 
-  if (!firebaseConfig) {
-    console.warn("⚠️ Firebase config missing at runtime");
-    return null; // do NOT crash the app
+  // ⛔ HARD GUARD: do nothing until runtime is ready
+  if (!config) {
+    return null;
   }
 
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-  } else {
-    firebaseApp = getApps()[0];
+  try {
+    if (getApps().length === 0) {
+      firebaseApp = initializeApp(config);
+    } else {
+      firebaseApp = getApps()[0];
+    }
+  } catch (e) {
+    console.error("🔥 Firebase init failed:", e);
+    return null;
   }
 
   return firebaseApp;
