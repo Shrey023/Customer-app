@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,18 +13,30 @@ import {
   PhoneAuthProvider,
   signInWithCredential,
 } from "firebase/auth";
-import { app } from "../config/firebase.js";
+import { getFirebaseApp } from "../config/firebase";
 import API from "../api/client";
 
-const auth = getAuth(app);
-
 export default function OTPScreen({ navigation }) {
+  const [auth, setAuth] = useState(null);
+
   const [phone, setPhone] = useState("");
   const [verificationId, setVerificationId] = useState(null);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Send OTP (UNCHANGED LOGIC)
+  // ✅ Firebase init moved to runtime (CRITICAL FIX)
+  useEffect(() => {
+    const app = getFirebaseApp();
+    if (!app) return;
+    setAuth(getAuth(app));
+  }, []);
+
+  // ⛔ Prevent render until Firebase is ready
+  if (!auth) {
+    return null; // or loading spinner if you want
+  }
+
+  // Send OTP (LOGIC UNCHANGED)
   const sendOtp = async () => {
     try {
       const digits = phone.replace(/\D/g, "");
@@ -34,7 +46,6 @@ export default function OTPScreen({ navigation }) {
 
       const e164 = phone.startsWith("+") ? phone : `+91${digits.slice(-10)}`;
 
-      // ✅ Recaptcha is handled internally by Firebase in RN
       const confirmation = await signInWithPhoneNumber(auth, e164);
 
       setVerificationId(confirmation.verificationId);
@@ -44,7 +55,7 @@ export default function OTPScreen({ navigation }) {
     }
   };
 
-  // Verify OTP (UNCHANGED)
+  // Verify OTP (LOGIC UNCHANGED)
   const verifyOtp = async () => {
     if (!verificationId) return Alert.alert("Error", "Please request OTP first");
     if (otp.length < 6) return Alert.alert("Error", "Enter 6-digit OTP");
