@@ -36,14 +36,7 @@
     "extra": {
       "API_URL": "https://mechtrix.onrender.com/api",
       "GOOGLE_MAPS_KEY": "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA",
-      "FIREBASE_CONFIG": {
-        "apiKey": "AIzaSyB3haMSVU7irgTXQryAjzuk1z629NcMADk",
-        "authDomain": "mechzy-53b97.firebaseapp.com",
-        "projectId": "mechzy-53b97",
-        "storageBucket": "mechzy-53b97.appspot.com",
-        "messagingSenderId": "330922177030",
-        "appId": "1:330922177030:web:ef002d8eacf4b6ca650987"
-      },
+      
       "eas": {
         "projectId": "7a99f17f-62e6-488f-a6dd-5f26ac98ca52"
       }
