@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,87 +7,87 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import {
-  getAuth,
-  signInWithPhoneNumber,
-  PhoneAuthProvider,
-  signInWithCredential,
-} from "firebase/auth";
-import { getFirebaseApp } from "../config/firebase";
 import API from "../api/client";
 
 export default function OTPScreen({ navigation }) {
-  const [auth, setAuth] = useState(null);
-
   const [phone, setPhone] = useState("");
-  const [verificationId, setVerificationId] = useState(null);
   const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Firebase init moved to runtime (CRITICAL FIX)
-  useEffect(() => {
-    const app = getFirebaseApp();
-    if (!app) return;
-    setAuth(getAuth(app));
-  }, []);
-
-  // ⛔ Prevent render until Firebase is ready
-  if (!auth) {
-    return null; // or loading spinner if you want
-  }
-
-  // Send OTP (LOGIC UNCHANGED)
+  // --------------------
+  // SEND OTP (BACKEND)
+  // --------------------
   const sendOtp = async () => {
     try {
       const digits = phone.replace(/\D/g, "");
-      if (digits.length < 10) {
-        return Alert.alert("Error", "Enter a valid phone number");
+
+      if (digits.length !== 10) {
+        return Alert.alert("Error", "Enter a valid 10-digit phone number");
       }
 
-      const e164 = phone.startsWith("+") ? phone : `+91${digits.slice(-10)}`;
+      setLoading(true);
 
-      const confirmation = await signInWithPhoneNumber(auth, e164);
+      await API.post("/customer/send-otp", {
+        phone: digits,
+      });
 
-      setVerificationId(confirmation.verificationId);
-      Alert.alert("Success", "OTP sent to " + e164);
+      setOtpSent(true);
+      setLoading(false);
+
+      Alert.alert("Success", "OTP sent to your phone");
     } catch (err) {
-      Alert.alert("Error", err.message);
+      setLoading(false);
+      Alert.alert(
+        "Error",
+        err?.response?.data?.message || "Failed to send OTP"
+      );
     }
   };
 
-  // Verify OTP (LOGIC UNCHANGED)
+  // --------------------
+  // VERIFY OTP (BACKEND)
+  // --------------------
   const verifyOtp = async () => {
-    if (!verificationId) return Alert.alert("Error", "Please request OTP first");
-    if (otp.length < 6) return Alert.alert("Error", "Enter 6-digit OTP");
+    if (otp.length !== 6) {
+      return Alert.alert("Error", "Enter 6-digit OTP");
+    }
 
     try {
       setLoading(true);
-      const credential = PhoneAuthProvider.credential(verificationId, otp);
-      await signInWithCredential(auth, credential);
 
-      const user = auth.currentUser;
-      if (!user) throw new Error("No Firebase user after OTP verification");
-
-      const idToken = await user.getIdToken();
-      const res = await API.post("/customers/verify-otp", { idToken });
+      const res = await API.post("/customer/verify-otp", {
+        phone: phone.replace(/\D/g, ""),
+        otp,
+      });
 
       const { token, _id, isNew } = res.data;
+
       setLoading(false);
 
       if (isNew) {
-        navigation.replace("RegistrationDetails", { token, customerId: _id });
+        navigation.replace("RegistrationDetails", {
+          token,
+          customerId: _id,
+        });
       } else {
-        navigation.replace("Home", { token, customerId: _id });
+        navigation.replace("Home", {
+          token,
+          customerId: _id,
+        });
       }
     } catch (err) {
       setLoading(false);
-      Alert.alert("Error", err.message || "OTP verification failed");
+      Alert.alert(
+        "Error",
+        err?.response?.data?.message || "OTP verification failed"
+      );
     }
   };
 
   return (
     <View style={styles.container}>
-      {!verificationId ? (
+      {!otpSent ? (
         <>
           <Text style={styles.header}>Enter your mobile number</Text>
 
@@ -98,16 +98,25 @@ export default function OTPScreen({ navigation }) {
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
+            maxLength={10}
           />
 
-          <TouchableOpacity style={styles.button} onPress={sendOtp}>
-            <Text style={styles.buttonText}>Send OTP</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={sendOtp}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? "Sending..." : "Send OTP"}
+            </Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
           <Text style={styles.header}>Enter code</Text>
-          <Text style={styles.subText}>We sent a code to {phone}</Text>
+          <Text style={styles.subText}>
+            We sent a code to {phone.replace(/\D/g, "")}
+          </Text>
 
           <View style={styles.otpContainer}>
             {Array(6)
@@ -118,12 +127,12 @@ export default function OTPScreen({ navigation }) {
                   style={styles.otpBox}
                   maxLength={1}
                   keyboardType="number-pad"
+                  value={otp[i] || ""}
                   onChangeText={(value) => {
-                    let newOtp = otp.split("");
+                    const newOtp = otp.split("");
                     newOtp[i] = value;
                     setOtp(newOtp.join(""));
                   }}
-                  value={otp[i] || ""}
                 />
               ))}
           </View>
@@ -138,7 +147,11 @@ export default function OTPScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.resendButton} onPress={sendOtp}>
+          <TouchableOpacity
+            style={styles.resendButton}
+            onPress={sendOtp}
+            disabled={loading}
+          >
             <Text style={styles.resendText}>Resend code</Text>
           </TouchableOpacity>
         </>
