@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
   TouchableOpacity,
+  Platform,
+  StatusBar,
 } from "react-native";
 import * as Location from "expo-location";
 import api from "../api/client";
@@ -123,10 +125,12 @@ export default function NearbyMechanics({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.loadText}>Finding nearby mechanics…</Text>
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadText}>Finding nearby mechanics…</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -216,7 +220,12 @@ function MechanicRow({ mechanic, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 16 },
+  safe: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadText: { marginTop: 8, color: "#555" },
   title: {
@@ -228,17 +237,19 @@ const styles = StyleSheet.create({
   },
   sortRow: {
     flexDirection: "row",
-    gap: 10,
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: 12,
     paddingHorizontal: 4,
   },
   sortBtn: {
-    flex: 1,
+    width: "48%",
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: "#f0f0f0",
     alignItems: "center",
+    marginBottom: 8,
   },
   sortBtnActive: {
     backgroundColor: "#C98A52",

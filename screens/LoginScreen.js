@@ -6,6 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  SafeAreaView,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../api/client"; // axios instance for backend
@@ -24,13 +29,13 @@ export default function LoginScreen({ navigation }) {
       setLoading(true);
       console.log("📤 Sending login request:", { email, password });
 
-      const res = await API.post("/customers/login", { email, password });
+      const res = await API.post("/auth/customer/login", { email, password });
       console.log("✅ Login success:", res.data);
 
-      await AsyncStorage.setItem("customerId", res.data.customer._id);
+      await AsyncStorage.setItem("customerId", res.data._id);
       await AsyncStorage.setItem(
         "customerData",
-        JSON.stringify(res.data.customer)
+        JSON.stringify(res.data)
       );
       if (res.data.token) {
         await AsyncStorage.setItem("token", res.data.token);
@@ -50,76 +55,92 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <Text style={styles.brand}>Mechze</Text>
-      <Text style={styles.title}>Welcome back</Text>
-
-      {/* Email Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Username or email"
-        placeholderTextColor="#8a8a8a"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      {/* Password Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#8a8a8a"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {/* Login Button */}
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={handleLogin}
-        disabled={loading}
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Text style={styles.loginButtonText}>
-          {loading ? "Logging in..." : "Log in"}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Divider */}
-      <Text style={styles.orText}>Or log in with</Text>
-
-      {/* Social Buttons */}
-      <View style={styles.socialContainer}>
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={() => navigation.navigate("OTP")}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.socialText}>Phone</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
-          <Text style={styles.socialText}>Google</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.container}>
+            <Text style={styles.brand}>Mechze</Text>
+            <Text style={styles.title}>Welcome back</Text>
 
-      {/* Sign up link */}
-      <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-        <Text style={styles.signupText}>
-          Don’t have an account? <Text style={styles.signupLink}>Sign up</Text>
-        </Text>
-      </TouchableOpacity>
-    </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Username or email"
+              placeholderTextColor="#8a8a8a"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#8a8a8a"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.loginButtonText}>
+                {loading ? "Logging in..." : "Log in"}
+              </Text>
+            </TouchableOpacity>
+
+            <Text style={styles.orText}>Or log in with</Text>
+
+            <View style={styles.socialContainer}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => navigation.navigate("OTP")}
+              >
+                <Text style={styles.socialText}>Phone</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialButton}>
+                <Text style={styles.socialText}>Google</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+              <Text style={styles.signupText}>
+                Don’t have an account? <Text style={styles.signupLink}>Sign up</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 25,
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
+  keyboardWrap: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 25,
+    paddingVertical: 16,
+  },
+  container: {
+    alignItems: "center",
+    width: "100%",
   },
   brand: {
     fontSize: 20,
@@ -163,7 +184,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    marginBottom: 40,
+    marginBottom: 24,
   },
   socialButton: {
     flex: 1,
@@ -181,6 +202,7 @@ const styles = StyleSheet.create({
   signupText: {
     fontSize: 14,
     color: "#6b4f3f",
+    textAlign: "center",
   },
   signupLink: {
     fontWeight: "600",

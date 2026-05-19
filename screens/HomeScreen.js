@@ -10,6 +10,8 @@ import {
   ImageBackground,
   SafeAreaView,
   RefreshControl,
+  Platform,
+  StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
@@ -88,10 +90,12 @@ export default function HomeScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.loadText}>Loading Dashboard…</Text>
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadText}>Loading Dashboard…</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -217,7 +221,11 @@ function capitalize(s) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FFFFFF" },
+  safe: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadText: { marginTop: 8, color: "#555" },
   heroWrap: { paddingHorizontal: 16, paddingTop: 8 },
@@ -249,7 +257,7 @@ const styles = StyleSheet.create({
   ctaText: { color: "#fff", fontWeight: "700", fontSize: 16 },
   chipsRow: {
     flexDirection: "row",
-    gap: 10,
+    flexWrap: "wrap",
     paddingHorizontal: 16,
     marginTop: 14,
   },
@@ -258,6 +266,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#F3F2F1",
     borderRadius: 10,
+    marginRight: 10,
+    marginBottom: 10,
   },
   chipActive: { backgroundColor: "#1E1E1E" },
   chipText: { color: "#333", fontWeight: "600" },

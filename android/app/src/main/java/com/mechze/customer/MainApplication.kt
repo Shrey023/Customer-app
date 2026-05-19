@@ -1,4 +1,4 @@
-package com.shrey_rai.customerapp
+package com.mechze.customer
 
 import android.app.Application
 import android.content.res.Configuration

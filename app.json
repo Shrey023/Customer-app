@@ -1,11 +1,12 @@
 {
   "expo": {
+    "name": "Mechze",
     "slug": "customer-app-new",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -23,7 +24,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.shrey_rai.customerapp",
+      "versionCode": 1,
+      "package": "com.mechze.customer",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA"
@@ -35,12 +37,11 @@
     },
     "extra": {
       "API_URL": "https://mechtrix.onrender.com/api",
-      "GOOGLE_MAPS_KEY": "AIzaSyDuOu5cFrfhiJIkdI3cE9od7cbTUw9kdxA",
-      
+      "GOOGLE_MAPS_KEY": "",
       "eas": {
-        "projectId": "7a99f17f-62e6-488f-a6dd-5f26ac98ca52"
+        "projectId": "0be0f7d1-2d57-4f59-a7e6-7875f5fc695e"
       }
     },
-    "owner": "shrey_242"
+    "owner": "shrey_r"
   }
 }

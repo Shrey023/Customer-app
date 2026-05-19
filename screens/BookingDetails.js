@@ -9,6 +9,8 @@ import {
   Image,
   ScrollView,
   Alert,
+  Platform,
+  StatusBar,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import axios from "axios";
@@ -160,7 +162,10 @@ export default function BookingDetails({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -264,7 +269,12 @@ export default function BookingDetails({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#fff" },
+  safe: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
+  scrollContent: { paddingBottom: 24 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   header: { flexDirection: "row", alignItems: "center", padding: 16 },

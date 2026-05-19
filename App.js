@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -15,8 +16,10 @@ import api from "./api/client";
 
 // Screens
 import LoginScreen from "./screens/LoginScreen";
+import SignupScreen from "./screens/SignupScreen";
 import OTPScreen from "./screens/OTPScreen";
 import HomeScreen from "./screens/HomeScreen";
+import CompleteProfile from "./screens/CompleteProfile";
 import RegistrationDetailsScreen from "./screens/RegistrationDetailsScreen";
 import NearbyMechanics from "./screens/NearbyMechanics";
 import BookingScreen from "./screens/BookingScreen";
@@ -26,6 +29,57 @@ import BookingsScreen from "./screens/BookingsScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+function base64UrlDecode(str) {
+  const pad = str.length % 4 === 0 ? "" : "=".repeat(4 - (str.length % 4));
+  const base64 = (str + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  let output = "";
+  let bc = 0;
+  let bs;
+  let buffer;
+
+  for (let idx = 0; idx < base64.length; idx++) {
+    buffer = chars.indexOf(base64.charAt(idx));
+    if (~buffer) {
+      bs = bc % 4 ? bs * 64 + buffer : buffer;
+      bc++;
+      if (bc % 4) {
+        const charCode = 255 & (bs >> ((-2 * bc) & 6));
+        output += String.fromCharCode(charCode);
+      }
+    }
+  }
+
+  return output;
+}
+
+function decodeJwt(token) {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payloadJson = base64UrlDecode(parts[1]);
+    return JSON.parse(payloadJson);
+  } catch (_) {
+    return null;
+  }
+}
+
+function hasValidToken(token) {
+  if (!token) return false;
+
+  const payload = decodeJwt(token);
+  if (!payload) {
+    return true;
+  }
+
+  if (!payload.exp) {
+    return true;
+  }
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  return payload.exp > nowSec - 60;
+}
 
 function Tabs({ navigation }) {
   const [activeBooking, setActiveBooking] = useState(null);
@@ -93,15 +147,53 @@ function Tabs({ navigation }) {
 }
 
 export default function App() {
+  const [initialRoute, setInitialRoute] = useState("Login");
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const rehydrateSession = async () => {
+      try {
+        const [customerId, token] = await Promise.all([
+          AsyncStorage.getItem("customerId"),
+          AsyncStorage.getItem("token"),
+        ]);
+
+        if (customerId && hasValidToken(token)) {
+          setInitialRoute("Tabs");
+        } else {
+          await AsyncStorage.multiRemove(["customerId", "customerData", "token"]);
+          setInitialRoute("Login");
+        }
+      } catch (error) {
+        console.error("Session rehydrate error:", error);
+        setInitialRoute("Login");
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    rehydrateSession();
+  }, []);
+
+  if (authLoading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#C98A52" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName={initialRoute}
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="OTP" component={OTPScreen} />
+        <Stack.Screen name="CompleteProfile" component={CompleteProfile} />
         <Stack.Screen
           name="RegistrationDetails"
           component={RegistrationDetailsScreen}
@@ -116,6 +208,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
   floatingBtn: {
     position: "absolute",
     bottom: 70,

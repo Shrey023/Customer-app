@@ -1,4 +1,4 @@
-package com.shrey_rai.customerapp
+package com.mechze.customer
 
 import android.os.Build
 import android.os.Bundle

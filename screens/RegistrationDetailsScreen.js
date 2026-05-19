@@ -1,5 +1,17 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+} from "react-native";
 import API from "../api/client";
 
 export default function RegistrationDetailsScreen({ route, navigation }) {
@@ -13,35 +25,59 @@ export default function RegistrationDetailsScreen({ route, navigation }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       Alert.alert("Success", "Details saved!");
-      navigation.replace("Home", { token, customerId });
+      navigation.replace("Tabs", { token, customerId });
     } catch (err) {
       Alert.alert("Error", "Failed to save details");
     }
   };
 
   const skip = () => {
-    navigation.replace("Home", { token, customerId });
+    navigation.replace("Tabs", { token, customerId });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Complete Your Profile</Text>
-      <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            <Text style={styles.title}>Complete Your Profile</Text>
+            <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
+            <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
 
-      <TouchableOpacity style={styles.button} onPress={saveDetails}>
-        <Text style={styles.buttonText}>Save & Continue</Text>
-      </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={saveDetails}>
+              <Text style={styles.buttonText}>Save & Continue</Text>
+            </TouchableOpacity>
 
-      <TouchableOpacity style={styles.skipButton} onPress={skip}>
-        <Text style={styles.skipText}>Skip for Now</Text>
-      </TouchableOpacity>
-    </View>
+            <TouchableOpacity style={styles.skipButton} onPress={skip}>
+              <Text style={styles.skipText}>Skip for Now</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#fff" },
+  safe: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
+  keyboardWrap: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  container: { width: "100%" },
   title: { fontSize: 20, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 15 },
   button: { backgroundColor: "#28A745", padding: 15, borderRadius: 8, alignItems: "center", marginBottom: 10 },

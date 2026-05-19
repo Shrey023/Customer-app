@@ -6,7 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../api/client";
 
 export default function OTPScreen({ navigation }) {
@@ -28,7 +34,7 @@ export default function OTPScreen({ navigation }) {
 
       setLoading(true);
 
-      await API.post("/customer/send-otp", {
+      await API.post("/auth/customer/send-otp", {
         phone: digits,
       });
 
@@ -40,7 +46,7 @@ export default function OTPScreen({ navigation }) {
       setLoading(false);
       Alert.alert(
         "Error",
-        err?.response?.data?.message || "Failed to send OTP"
+        err?.response?.data?.message || err?.message || "Failed to send OTP"
       );
     }
   };
@@ -56,116 +62,144 @@ export default function OTPScreen({ navigation }) {
     try {
       setLoading(true);
 
-      const res = await API.post("/customer/verify-otp", {
+      const res = await API.post("/auth/customer/verify-otp", {
         phone: phone.replace(/\D/g, ""),
         otp,
       });
 
-      const { token, _id, isNew } = res.data;
+      const { _id, token, isNew } = res.data;
+
+      if (_id) {
+        await AsyncStorage.setItem("customerId", _id);
+      }
+      if (token) {
+        await AsyncStorage.setItem("token", token);
+      }
 
       setLoading(false);
 
       if (isNew) {
-        navigation.replace("RegistrationDetails", {
+        navigation.replace("CompleteProfile", {
           token,
           customerId: _id,
+          phone: phone.replace(/\D/g, ""),
         });
       } else {
-        navigation.replace("Home", {
-          token,
-          customerId: _id,
-        });
+        navigation.replace("Tabs");
       }
     } catch (err) {
       setLoading(false);
       Alert.alert(
         "Error",
-        err?.response?.data?.message || "OTP verification failed"
+        err?.response?.data?.message || err?.message || "OTP verification failed"
       );
     }
   };
 
   return (
-    <View style={styles.container}>
-      {!otpSent ? (
-        <>
-          <Text style={styles.header}>Enter your mobile number</Text>
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            {!otpSent ? (
+              <>
+                <Text style={styles.header}>Enter your mobile number</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Mobile number"
-            placeholderTextColor="#aaa"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-            maxLength={10}
-          />
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={sendOtp}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? "Sending..." : "Send OTP"}
-            </Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <Text style={styles.header}>Enter code</Text>
-          <Text style={styles.subText}>
-            We sent a code to {phone.replace(/\D/g, "")}
-          </Text>
-
-          <View style={styles.otpContainer}>
-            {Array(6)
-              .fill(0)
-              .map((_, i) => (
                 <TextInput
-                  key={i}
-                  style={styles.otpBox}
-                  maxLength={1}
-                  keyboardType="number-pad"
-                  value={otp[i] || ""}
-                  onChangeText={(value) => {
-                    const newOtp = otp.split("");
-                    newOtp[i] = value;
-                    setOtp(newOtp.join(""));
-                  }}
+                  style={styles.input}
+                  placeholder="Mobile number"
+                  placeholderTextColor="#aaa"
+                  keyboardType="phone-pad"
+                  value={phone}
+                  onChangeText={setPhone}
+                  maxLength={10}
                 />
-              ))}
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={sendOtp}
+                  disabled={loading}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? "Sending..." : "Send OTP"}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.header}>Enter code</Text>
+                <Text style={styles.subText}>
+                  We sent a code to {phone.replace(/\D/g, "")}
+                </Text>
+
+                <View style={styles.otpContainer}>
+                  {Array(6)
+                    .fill(0)
+                    .map((_, i) => (
+                      <TextInput
+                        key={i}
+                        style={styles.otpBox}
+                        maxLength={1}
+                        keyboardType="number-pad"
+                        value={otp[i] || ""}
+                        onChangeText={(value) => {
+                          const newOtp = otp.split("");
+                          newOtp[i] = value;
+                          setOtp(newOtp.join(""));
+                        }}
+                      />
+                    ))}
+                </View>
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={verifyOtp}
+                  disabled={loading}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? "Verifying..." : "Next"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.resendButton}
+                  onPress={sendOtp}
+                  disabled={loading}
+                >
+                  <Text style={styles.resendText}>Resend code</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={verifyOtp}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? "Verifying..." : "Next"}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.resendButton}
-            onPress={sendOtp}
-            disabled={loading}
-          >
-            <Text style={styles.resendText}>Resend code</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    padding: 25,
-    justifyContent: "center",
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
+  keyboardWrap: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 25,
+    paddingVertical: 16,
+  },
+  container: {
+    width: "100%",
   },
   header: {
     fontSize: 22,
@@ -203,10 +237,12 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    width: "100%",
     marginBottom: 20,
   },
   otpBox: {
-    width: 45,
+    width: "14%",
+    minWidth: 38,
     height: 55,
     borderRadius: 10,
     backgroundColor: "#f2f2f2",

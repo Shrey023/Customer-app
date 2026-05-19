@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, SafeAreaView, Platform
+  StyleSheet, ActivityIndicator, Alert, SafeAreaView, Platform,
+  ScrollView, KeyboardAvoidingView, StatusBar
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
@@ -140,52 +141,67 @@ export default function BookingScreen({ route, navigation }) {
   };
 
   if (loading) {
-    return <View style={styles.centered}><ActivityIndicator size="large" /><Text>Creating booking…</Text></View>;
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" />
+          <Text>Creating booking…</Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Text style={styles.title}>Book Mechanic</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Vehicle Type (e.g. Car, Bike, Truck)"
-        value={vehicleType}
-        onChangeText={setVehicleType}
-        placeholderTextColor="#999"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Service Type (e.g. Tire Change)"
-        value={serviceType}
-        onChangeText={setServiceType}
-        placeholderTextColor="#999"
-      />
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Describe the problem"
-        value={problemDescription}
-        onChangeText={setProblemDescription}
-        multiline
-        placeholderTextColor="#999"
-      />
-
-      {/* ✅ Time Picker - Platform Specific */}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => {
-          setShowPicker(true);
-          // ✅ Android: Start with date picker
-          if (Platform.OS === "android") {
-            setPickerMode("date");
-          }
-        }}
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Text>
-          Scheduled Time: {scheduledTime.toLocaleString()}
-        </Text>
-      </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>Book Mechanic</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Vehicle Type (e.g. Car, Bike, Truck)"
+            value={vehicleType}
+            onChangeText={setVehicleType}
+            placeholderTextColor="#999"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Service Type (e.g. Tire Change)"
+            value={serviceType}
+            onChangeText={setServiceType}
+            placeholderTextColor="#999"
+          />
+          <TextInput
+            style={[styles.input, { height: 80 }]}
+            placeholder="Describe the problem"
+            value={problemDescription}
+            onChangeText={setProblemDescription}
+            multiline
+            placeholderTextColor="#999"
+          />
+
+          {/* ✅ Time Picker - Platform Specific */}
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => {
+              setShowPicker(true);
+              // ✅ Android: Start with date picker
+              if (Platform.OS === "android") {
+                setPickerMode("date");
+              }
+            }}
+          >
+            <Text>
+              Scheduled Time: {scheduledTime.toLocaleString()}
+            </Text>
+          </TouchableOpacity>
 
       {/* ✅ iOS: Single datetime spinner picker */}
       {showPicker && Platform.OS === "ios" && (
@@ -254,15 +270,23 @@ export default function BookingScreen({ route, navigation }) {
         />
       )}
 
-      <TouchableOpacity style={styles.btn} onPress={handleBooking}>
-        <Text style={styles.btnText}>Confirm Booking</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.btn} onPress={handleBooking}>
+            <Text style={styles.btnText}>Confirm Booking</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  safe: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
+  },
+  keyboardWrap: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 32 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   title: { fontSize: 22, fontWeight: "700", marginBottom: 20 },
   input: {
