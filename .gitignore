@@ -53,3 +53,10 @@ config/*.config.js
 *.tar.gz
 
 !config/firebase.js
+
+# Android build artifacts and local configuration
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+
